@@ -1,0 +1,5 @@
+// {
+//     "python.analysis.extraPaths": [
+//         "./multi_agent_chatbot/src/multi_agent_chatbot"
+//     ]
+// }

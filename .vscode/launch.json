@@ -1,0 +1,26 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Python: Chatbot App (Module)", // 이름은 식별하기 쉽게 변경 가능
+            "type": "debugpy", // "debugpy"도 가능하지만, "python"이 더 일반적입니다.
+            "request": "launch",
+            // Poetry 프로젝트 루트 (cwd)에서 바라본 실행할 모듈 경로
+            // src 폴더 안에 multi_agent_chatbot 패키지가 있고, 그 안에 app.py 모듈
+            "module": "multi_agent_chatbot.app",
+            // Poetry 프로젝트의 루트 디렉토리 (pyproject.toml 파일이 있는 곳)
+            // ${workspaceFolder}는 VS Code에서 열린 최상위 폴더 (스크린샷에서는 'chat_bot' 폴더)
+            // 따라서 Poetry 프로젝트 루트는 '${workspaceFolder}/multi_agent_chatbot'가 됩니다.
+            "cwd": "${workspaceFolder}/m_agent_chatbot/src",
+            // "program": "${file}", // "module"을 사용하므로 이 줄은 삭제하거나 주석 처리합니다.
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            // 지정된 파이썬 인터프리터 사용 (Poetry 가상환경)
+            "python": "C:/Users/KimDongJune/Documents/LLM_Chat_bot/chat_bot/.venv/Scripts/python.exe"
+        }
+    ]
+}
