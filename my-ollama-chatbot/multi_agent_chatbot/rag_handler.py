@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from typing import List, Tuple, Optional
+import time
 
 from langchain_community.document_loaders import PyPDFLoader, UnstructuredPDFLoader
 from langchain_community.vectorstores import Chroma
@@ -10,18 +11,51 @@ from langchain_core.documents import Document
 from .llm_config import embeddings, llm_coding # JS 변환에 코딩 LLM 사용
 from .utils import extract_javascript_from_text, convert_js_to_python_code
 
-CHROMA_DB_PATH = str(Path(__file__).parent.parent.parent / "data" / "chroma_db")
-PDF_STORAGE_PATH = str(Path(__file__).parent.parent.parent / "data" / "pdfs")
+# 데이터 디렉토리 설정
+BASE_DIR = Path(__file__).parent.parent.parent
+CHROMA_DB_PATH = str(BASE_DIR / "data" / "chroma_db")
+PDF_STORAGE_PATH = str(BASE_DIR / "data" / "pdfs")
 
+# 필요한 디렉토리 생성
 os.makedirs(CHROMA_DB_PATH, exist_ok=True)
 os.makedirs(PDF_STORAGE_PATH, exist_ok=True)
 
-# ChromaDB 클라이언트 초기화 (메모리 또는 영구 저장소)
-vectorstore = Chroma(
-    embedding_function=embeddings,
-    persist_directory=CHROMA_DB_PATH,
-    collection_name="rag_collection"
-)
+def initialize_chroma():
+    """ChromaDB를 안전하게 초기화합니다."""
+    max_retries = 3
+    retry_delay = 2  # 초
+
+    for attempt in range(max_retries):
+        try:
+            # 기존 데이터베이스 파일이 있다면 삭제
+            if os.path.exists(CHROMA_DB_PATH):
+                import shutil
+                try:
+                    shutil.rmtree(CHROMA_DB_PATH)
+                except PermissionError:
+                    print(f"데이터베이스 파일이 사용 중입니다. {retry_delay}초 후 재시도합니다...")
+                    time.sleep(retry_delay)
+                    continue
+
+            os.makedirs(CHROMA_DB_PATH, exist_ok=True)
+            
+            # 새로운 ChromaDB 인스턴스 생성
+            vectorstore = Chroma(
+                embedding_function=embeddings,
+                persist_directory=CHROMA_DB_PATH,
+                collection_name="rag_collection"
+            )
+            return vectorstore
+
+        except Exception as e:
+            print(f"ChromaDB 초기화 시도 {attempt + 1}/{max_retries} 실패: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(retry_delay)
+            else:
+                raise Exception("ChromaDB 초기화에 실패했습니다.")
+
+# ChromaDB 초기화
+vectorstore = initialize_chroma()
 
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,

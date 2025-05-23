@@ -1,183 +1,348 @@
 import sys
 import os
-from PIL import Image # PIL.Image is used, so ensure it's imported
+from PIL import Image
 from typing import List, Tuple, Optional
+import streamlit as st
+import tempfile
+import time
 
-# 현재 파일(app.py)의 절대 경로를 기준으로 상위 디렉토리(src)를 sys.path에 추가
-# __file__ 은 현재 실행 중인 스크립트의 경로입니다.
-# 가정: app.py가 project_root/app_interface/app.py 에 있고,
-# multi_agent_chatbot 모듈이 project_root/multi_agent_chatbot/ 에 있는 경우
-# 혹은 app.py가 project_root/src/app_interface/app.py 에 있고,
-# multi_agent_chatbot 모듈이 project_root/src/multi_agent_chatbot/ 에 있는 경우
-# 아래 코드는 project_root/ (또는 project_root/src/)를 sys.path에 추가합니다.
-# 이렇게 하면 `from multi_agent_chatbot...` 임포트가 가능해집니다.
+# 현재 파일의 절대 경로를 기준으로 상위 디렉토리를 sys.path에 추가
 current_file_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_file_dir)
-sys.path.insert(0, parent_dir) # 상위 디렉토리를 sys.path에 추가
+sys.path.insert(0, parent_dir)
 
-# 이제 multi_agent_chatbot 모듈을 임포트할 수 있습니다.
 from multi_agent_chatbot.agent_logic import run_graph
 from multi_agent_chatbot.rag_handler import process_and_embed_pdf, PDF_STORAGE_PATH
 
-import gradio as gr
-# from PIL import Image # 이미 위에서 임포트 함
-# from typing import List, Tuple, Optional # 이미 위에서 임포트 함
+# 페이지 설정 (반드시 첫 번째 Streamlit 명령어여야 함)
+st.set_page_config(
+    page_title="멀티 에이전트 AI 챗봇",
+    page_icon="🤖",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
+# CSS 스타일 정의
+st.markdown("""
+<style>
+    /* 전체 페이지 스타일 */
+    .stApp {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    /* 채팅 메시지 스타일 */
+    .chat-message {
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .chat-message.user {
+        background-color: #f0f2f6;
+    }
+    
+    .chat-message.assistant {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .chat-message .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .chat-message .message {
+        flex: 1;
+        padding: 0.5rem 0;
+    }
+    
+    /* 입력 영역 스타일 */
+    .stTextInput > div > div > input {
+        border-radius: 1rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    /* 버튼 스타일 */
+    .stButton > button {
+        border-radius: 1rem;
+        padding: 0.5rem 1.5rem;
+    }
+    
+    /* 사이드바 스타일 */
+    .css-1d391kg {
+        padding: 2rem 1rem;
+        background-color: #f8f9fa;
+    }
 
-# --- Gradio 인터페이스 ---
-def chat_interface(message: str, history: List[Tuple[str, str]], image_upload: Optional[Image.Image]):
-    """Gradio 챗봇 인터페이스 함수"""
-    print(f"User query: {message}")
-    if image_upload:
-        # PIL.Image 객체는 .filename 속성이 없을 수 있습니다. 로깅 시 주의.
-        print(f"Image uploaded: type={type(image_upload)}, size={image_upload.size if image_upload else 'N/A'}")
+    /* 사이드바 헤더 스타일 */
+    .sidebar-header {
+        text-align: center;
+        padding: 1rem 0;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
 
-    # run_graph 함수는 PIL Image 객체를 직접 받도록 수정됨
-    # 에러 핸들링을 추가하면 더 견고해집니다.
-    try:
-        response_text = run_graph(message, history, image_upload)
-    except Exception as e:
-        print(f"Error in run_graph: {e}")
-        response_text = "죄송합니다, 요청을 처리하는 중 오류가 발생했습니다."
-        # 개발 중에는 더 자세한 에러 메시지를 반환할 수도 있습니다.
-        # import traceback
-        # response_text = f"Error: {e}\n{traceback.format_exc()}"
+    .sidebar-header img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
 
-    history.append((message, response_text))
-    return "", history, None # 입력창 비우기, 업데이트된 히스토리, 이미지 업로드 초기화
+    .sidebar-header h1 {
+        font-size: 1.5rem;
+        color: #1f1f1f;
+        margin: 0;
+        font-weight: 600;
+    }
 
-def process_pdf_upload(pdf_file_obj): # 파라미터 이름을 명확히 (Gradio File 객체)
-    """Gradio PDF 업로드 처리 함수"""
-    if pdf_file_obj is not None:
-        # Gradio File 컴포넌트는 임시 파일 객체를 반환하며, .name 속성으로 임시 파일 경로를 가집니다.
-        temp_file_path = pdf_file_obj.name
-        original_filename = os.path.basename(temp_file_path) # Gradio가 임시 파일에 원래 이름을 유지하지 않을 수 있음
-                                                            # pdf_file_obj.orig_name 이나 다른 속성을 확인해야 할 수도 있음
-                                                            # 보통은 temp_file_path의 basename이 임시 이름임.
-                                                            # 사용자가 업로드한 실제 파일 이름을 얻고 싶다면,
-                                                            # Gradio File 객체의 다른 속성을 확인하거나,
-                                                            # 파일 이름을 별도로 입력받는 UI를 고려해야 할 수 있습니다.
-                                                            # 여기서는 임시 파일 경로의 basename을 사용합니다.
-        
-        print(f"Processing PDF: {temp_file_path}")
-        
-        # (선택적) 업로드된 파일을 영구적인 위치로 복사/이동
-        # if PDF_STORAGE_PATH: # PDF_STORAGE_PATH가 설정되어 있고, 파일을 영구 저장하고 싶을 때
-        #     if not os.path.exists(PDF_STORAGE_PATH):
-        #         os.makedirs(PDF_STORAGE_PATH)
-        #     permanent_file_path = os.path.join(PDF_STORAGE_PATH, os.path.basename(pdf_file_obj.name)) # 원본 파일 이름 사용 시 주의
-        #     try:
-        #         import shutil
-        #         shutil.copy(temp_file_path, permanent_file_path)
-        #         print(f"Copied PDF to {permanent_file_path}")
-        #         file_path_for_processing = permanent_file_path # 복사된 파일로 처리
-        #     except Exception as e:
-        #         print(f"Error copying PDF: {e}")
-        #         return f"'{original_filename}' 파일 복사 중 오류 발생: {e}"
-        # else:
-        #     file_path_for_processing = temp_file_path # 임시 파일 경로 직접 사용
+    /* 사이드바 섹션 스타일 */
+    .sidebar-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
 
-        file_path_for_processing = temp_file_path # 현재 코드는 임시 파일 경로를 직접 사용
+    .sidebar-section h2 {
+        font-size: 1.1rem;
+        color: #1f1f1f;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
 
-        success = process_and_embed_pdf(file_path_for_processing)
-        
-        # 업로드된 파일의 실제 이름을 표시하기 위해 노력 (Gradio는 임시 이름을 줄 수 있음)
-        # Gradio File 객체의 `name`은 임시 경로이고, `orig_name`은 원본 파일 이름일 수 있습니다.
-        # 확인이 필요합니다. Gradio 버전에 따라 다를 수 있습니다.
-        # 여기서는 `os.path.basename(temp_file_path)`가 임시파일의 이름이므로,
-        # 사용자에게 보여줄 파일 이름은 `original_filename`이 더 적절할 수 있습니다.
-        # 다만, `pdf_file_obj.orig_name`이 있다면 그것을 사용하는 것이 가장 좋습니다.
-        display_filename = getattr(pdf_file_obj, 'orig_name', original_filename)
+    /* 파일 업로더 스타일 */
+    .stFileUploader > div {
+        border-radius: 0.5rem;
+        border: 2px dashed #e0e0e0;
+        background: white;
+        padding: 1rem;
+    }
 
+    /* 모델 정보 스타일 */
+    .model-info {
+        font-size: 0.9rem;
+        color: #666;
+        line-height: 1.6;
+    }
 
-        if success:
-            return f"'{display_filename}' 파일이 성공적으로 처리되어 RAG DB에 추가되었습니다."
-        else:
-            return f"'{display_filename}' 파일 처리 중 오류가 발생했습니다."
+    .model-info strong {
+        color: #1f1f1f;
+    }
+
+    /* 사용 팁 스타일 */
+    .usage-tips {
+        font-size: 0.9rem;
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .usage-tips li {
+        margin-bottom: 0.5rem;
+    }
+
+    /* 메인 컨테이너 스타일 */
+    .main-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        position: relative;
+    }
+
+    /* 채팅 컨테이너 스타일 */
+    .chat-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        margin-bottom: 200px; /* 입력 영역 높이만큼 여백 추가 */
+    }
+
+    /* 입력 컨테이너 스타일 */
+    .input-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        padding: 1rem;
+        border-top: 1px solid #e0e0e0;
+        z-index: 1000;
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    /* 이미지 업로더 컨테이너 스타일 */
+    .image-uploader-container {
+        margin-bottom: 1rem;
+    }
+
+    /* 채팅 입력창 스타일 */
+    .chat-input-container {
+        margin-top: 1rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# 세션 상태 초기화
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "streaming" not in st.session_state:
+    st.session_state.streaming = False
+
+def process_pdf_upload(pdf_file):
+    """PDF 파일 업로드 처리 함수"""
+    if pdf_file is not None:
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+            tmp_file.write(pdf_file.getvalue())
+            temp_file_path = tmp_file.name
+
+        try:
+            success = process_and_embed_pdf(temp_file_path)
+            if success:
+                return f"'{pdf_file.name}' 파일이 성공적으로 처리되어 RAG DB에 추가되었습니다."
+            else:
+                return f"'{pdf_file.name}' 파일 처리 중 오류가 발생했습니다."
+        finally:
+            os.unlink(temp_file_path)
     return "PDF 파일이 업로드되지 않았습니다."
 
-# Gradio 앱 구성
-with gr.Blocks(theme=gr.themes.Soft()) as demo:
-    gr.Markdown("# 멀티 에이전트 AI 챗봇 (Ollama & RAG)")
-    gr.Markdown("코딩/수학 문제는 `deepseek-coder`, 복잡한 추론은 `llama3`, 일반 질문은 `gemma`가 처리합니다. PDF를 업로드하여 RAG 기능을 사용할 수 있고, 이미지도 업로드하여 분석할 수 있습니다.")
-
-    with gr.Row():
-        with gr.Column(scale=3): # 채팅창 영역을 조금 더 넓게 조정 (예시)
-            chatbot = gr.Chatbot(
-                label="대화 내용",
-                height=600,
-                bubble_full_width=False,
-                #avatar_images=(None, "https://gradio.app/images/logo.png") # (user, bot) 아바타 이미지 예시
-            )
-            
-            with gr.Row():
-                # 이미지 업로드 UI 개선: sources에 "clipboard" 추가하여 붙여넣기 지원
-                image_input = gr.Image(type="pil", label="이미지 업로드 (선택)", #sources=["upload", "clipboard"],
-                height=150, width=150, interactive=False)
-                user_input = gr.Textbox(
-                    label="질문 입력",
-                    placeholder="여기에 질문을 입력하고 Enter를 누르거나 전송 버튼을 클릭하세요.",
-                    scale=4 # Textbox가 이미지 옆에서 더 많은 공간을 차지하도록
-                )
-            
-            submit_button = gr.Button("전송", variant="primary")
-
-        with gr.Column(scale=1):
-            gr.Markdown("## RAG 설정")
-            # file_count="single" (기본값) 또는 "multiple"로 설정 가능
-            pdf_upload = gr.File(label="PDF 파일 업로드 (RAG 학습용)", file_types=[".pdf"])
-            pdf_status = gr.Textbox(label="PDF 처리 상태", interactive=False, lines=3) # 여러 줄 표시 가능하도록
-            
-            # .upload 이벤트는 파일 업로드가 "완료"되었을 때 트리거됩니다.
-            pdf_upload.upload(fn=process_pdf_upload, inputs=pdf_upload, outputs=pdf_status)
-            
-            gr.Markdown("## 모델 정보")
-            gr.Markdown(
-                """
-                - **라우팅 및 에이전트 관리**: LangGraph
-                - **코딩/수학**: `deepseek-coder:6.7b` (예시)
-                - **복잡한 추론/이미지**: `llama3:8b` (예시, 이미지 분석은 `llava` 또는 multimodal `llama3` 변형)
-                - **일반 질문**: `gemma:2b` (예시)
-                - **임베딩**: `nomic-embed-text` (예시)
-                - **벡터DB**: ChromaDB (예시, `rag_handler.py`에 따라 다름)
-                - **토큰 컨텍스트**: 모델별 상이 (예: 4096 ~ 8192+)
-                """
-            )
-            gr.Markdown("---")
-            gr.Markdown("### 사용 팁:\n"
-                        "- PDF를 업로드하면 해당 내용 기반으로 답변합니다.\n"
-                        "- 이미지와 함께 질문하면 이미지를 분석하여 답변에 활용합니다.\n"
-                        "- '코드 짜줘', '수학 문제 풀어줘' 등으로 특정 에이전트를 유도할 수 있습니다.\n"
-                        "- 이미지 업로드 후에는 자동으로 질문과 함께 전송됩니다. 이미지를 제거하려면 'X' 버튼을 누르세요.")
-
-
-    # 이벤트 핸들러 연결
-    # Textbox에서 엔터키 입력 시
-    user_input.submit(
-        fn=chat_interface,
-        inputs=[user_input, chatbot, image_input],
-        outputs=[user_input, chatbot, image_input] # 이미지 입력창도 초기화
-    )
-    # 버튼 클릭 시
-    submit_button.click(
-        fn=chat_interface,
-        inputs=[user_input, chatbot, image_input],
-        outputs=[user_input, chatbot, image_input] # 이미지 입력창도 초기화
-    )
+def stream_response(response_text):
+    """응답을 스트리밍하는 함수"""
+    response_container = st.empty()
+    full_response = ""
+    
+    for chunk in response_text.split():
+        full_response += chunk + " "
+        response_container.markdown(full_response + "▌")
+        time.sleep(0.05)  # 스트리밍 효과를 위한 지연
+    
+    response_container.markdown(full_response)
+    return full_response
 
 def main():
-    # server_name="0.0.0.0"으로 설정하면 Docker 내부 또는 외부 네트워크에서 접근 가능
-    # share=True는 임시 공개 링크를 생성 (디버깅 및 간단한 공유에 유용)
-    demo.launch(server_name="0.0.0.0", share=True, debug=True) # debug=True 추가 시 유용
+    # 사이드바 설정
+    with st.sidebar:
+        # 사이드바 헤더
+        st.markdown("""
+        <div class="sidebar-header">
+            <img src="https://via.placeholder.com/150" alt="Logo">
+            <h1>멀티 에이전트 AI 챗봇</h1>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # RAG 설정
+        st.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
+        st.markdown('<h2>📚 RAG 설정</h2>', unsafe_allow_html=True)
+        pdf_file = st.file_uploader("PDF 파일 업로드", type=['pdf'])
+        if pdf_file:
+            with st.spinner("PDF 처리 중..."):
+                status = process_pdf_upload(pdf_file)
+                st.info(status)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # 모델 정보
+        st.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
+        st.markdown('<h2>🤖 모델 정보</h2>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="model-info">
+            <p><strong>코딩/수학</strong>: deepseek-coder:6.7b</p>
+            <p><strong>복잡한 추론/이미지</strong>: llama3:8b</p>
+            <p><strong>일반 질문</strong>: gemma:2b</p>
+            <p><strong>임베딩</strong>: nomic-embed-text</p>
+            <p><strong>벡터DB</strong>: ChromaDB</p>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # 사용 팁
+        st.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
+        st.markdown('<h2>💡 사용 팁</h2>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="usage-tips">
+            <ul>
+                <li>PDF를 업로드하면 해당 내용 기반으로 답변합니다.</li>
+                <li>이미지와 함께 질문하면 이미지를 분석하여 답변에 활용합니다.</li>
+                <li>'코드 짜줘', '수학 문제 풀어줘' 등으로 특정 에이전트를 유도할 수 있습니다.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # 메인 컨테이너
+    st.markdown('<div class="main-container">', unsafe_allow_html=True)
+    
+    # 채팅 메시지 표시 영역 (상단)
+    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+    for message in st.session_state.messages:
+        if message["role"] == "user":
+            st.markdown(f"""
+            <div class="chat-message user">
+                <img class="avatar" src="https://via.placeholder.com/40" alt="User">
+                <div class="message">{message["content"]}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            if "image" in message:
+                st.image(message["image"], width=300)
+        else:
+            st.markdown(f"""
+            <div class="chat-message assistant">
+                <img class="avatar" src="https://via.placeholder.com/40" alt="Assistant">
+                <div class="message">{message["content"]}</div>
+            </div>
+            """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # 입력 영역 (하단)
+    st.markdown('<div class="input-container">', unsafe_allow_html=True)
+    
+    # 이미지 업로드
+    st.markdown('<div class="image-uploader-container">', unsafe_allow_html=True)
+    uploaded_image = st.file_uploader("이미지 업로드", type=['png', 'jpg', 'jpeg'])
+    image = None
+    if uploaded_image:
+        image = Image.open(uploaded_image)
+        st.image(image, width=200)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # 사용자 입력
+    st.markdown('<div class="chat-input-container">', unsafe_allow_html=True)
+    if prompt := st.chat_input("여기에 질문을 입력하세요..."):
+        # 사용자 메시지 추가
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        if image:
+            st.session_state.messages[-1]["image"] = image
+
+        # 챗봇 응답 생성
+        with st.spinner("생각 중..."):
+            try:
+                response = run_graph(
+                    prompt,
+                    [(m["content"], "") for m in st.session_state.messages if m["role"] == "user"],
+                    image
+                )
+                # 스트리밍 응답
+                full_response = stream_response(response)
+                st.session_state.messages.append({"role": "assistant", "content": full_response})
+            except Exception as e:
+                st.error(f"오류가 발생했습니다: {str(e)}")
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    # PDF_STORAGE_PATH 디렉토리 존재 확인 및 생성 (선택적 파일 복사 기능을 사용할 경우)
-    # if PDF_STORAGE_PATH and not os.path.exists(PDF_STORAGE_PATH):
-    # try:
-    # os.makedirs(PDF_STORAGE_PATH)
-    # print(f"Created PDF storage directory: {PDF_STORAGE_PATH}")
-    # except OSError as e:
-    # print(f"Error creating PDF storage directory {PDF_STORAGE_PATH}: {e}")
-    # sys.exit(1) # 디렉토리 생성 실패 시 종료할 수 있음
-
-    main()
+    main() 
