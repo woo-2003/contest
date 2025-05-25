@@ -29,77 +29,165 @@ st.markdown("""
     .stApp {
         max-width: 1200px;
         margin: 0 auto;
+        background-color: #fafafa;
+        padding: 0;
     }
     
     /* 채팅 메시지 스타일 */
     .chat-message {
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        margin-bottom: 1rem;
         display: flex;
-        flex-direction: row;
         align-items: flex-start;
-        gap: 1rem;
+        margin: 8px 0;
+        max-width: 60%;
+        position: relative;
+        width: 100%;
     }
     
+    /* 사용자 메시지 스타일 */
     .chat-message.user {
-        background-color: #f0f2f6;
+        margin-left: auto;
+        flex-direction: row;
+        justify-content: flex-end;
+        padding-right: 0;
+        width: 100%;
     }
     
+    .chat-message.user .message {
+        background-color: #0095f6;
+        color: white;
+        border-radius: 22px;
+        border-bottom-right-radius: 4px;
+        padding: 12px 20px;
+        margin-right: 12px;
+        font-size: 15px;
+        line-height: 1.5;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        order: 1;
+        max-width: calc(100% - 48px);
+    }
+    
+    .chat-message.user .avatar {
+        order: 2;
+        flex-shrink: 0;
+    }
+    
+    /* AI 메시지 스타일 */
     .chat-message.assistant {
-        background-color: #ffffff;
-        border: 1px solid #e0e0e0;
+        margin-right: auto;
+        flex-direction: row;
+        justify-content: flex-start;
+        padding-left: 0;
+        width: 100%;
     }
     
+    .chat-message.assistant .message {
+        background-color: #efefef;
+        color: #262626;
+        border-radius: 22px;
+        border-bottom-left-radius: 4px;
+        padding: 12px 20px;
+        margin-left: 12px;
+        font-size: 15px;
+        line-height: 1.5;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        order: 2;
+        max-width: calc(100% - 48px);
+    }
+    
+    .chat-message.assistant .avatar {
+        order: 1;
+        flex-shrink: 0;
+    }
+    
+    /* 아바타 스타일 */
     .chat-message .avatar {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
-        object-fit: cover;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        background-color: white;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
-    .chat-message .message {
-        flex: 1;
-        padding: 0.5rem 0;
+    /* 메시지 내 이미지 스타일 */
+    .chat-message img {
+        max-width: 300px;
+        border-radius: 12px;
+        margin-top: 8px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* 코드 블록 스타일 */
+    .chat-message pre {
+        background-color: rgba(0, 0, 0, 0.05);
+        padding: 16px;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 8px 0;
+        font-size: 14px;
+    }
+    
+    .chat-message code {
+        font-family: 'Consolas', monospace;
+        font-size: 14px;
     }
     
     /* 입력 영역 스타일 */
     .stTextInput > div > div > input {
-        border-radius: 1rem;
-        padding: 0.75rem 1rem;
+        border-radius: 24px;
+        padding: 14px 24px;
+        border: 1px solid #dbdbdb;
+        background-color: white;
+        font-size: 15px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
     
     /* 버튼 스타일 */
     .stButton > button {
-        border-radius: 1rem;
-        padding: 0.5rem 1.5rem;
+        border-radius: 24px;
+        padding: 10px 20px;
+        background-color: #0095f6;
+        color: white;
+        border: none;
+        transition: background-color 0.2s ease;
+        font-size: 15px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stButton > button:hover {
+        background-color: #0081d6;
     }
     
     /* 사이드바 스타일 */
     .css-1d391kg {
-        padding: 2rem 1rem;
-        background-color: #f8f9fa;
+        padding: 2rem 1.5rem;
+        background-color: white;
+        border-right: 1px solid #dbdbdb;
+        width: 300px !important;
     }
 
     /* 사이드바 헤더 스타일 */
     .sidebar-header {
         text-align: center;
-        padding: 1rem 0;
+        padding: 1.5rem 0;
         margin-bottom: 2rem;
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid #dbdbdb;
     }
 
     .sidebar-header img {
-        width: 80px;
-        height: 80px;
+        width: 100px;
+        height: 100px;
         border-radius: 50%;
-        margin-bottom: 1rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .sidebar-header h1 {
-        font-size: 1.5rem;
-        color: #1f1f1f;
+        font-size: 1.8rem;
+        color: #262626;
         margin: 0;
         font-weight: 600;
     }
@@ -107,49 +195,49 @@ st.markdown("""
     /* 사이드바 섹션 스타일 */
     .sidebar-section {
         background: white;
-        border-radius: 1rem;
+        border-radius: 12px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     .sidebar-section h2 {
-        font-size: 1.1rem;
-        color: #1f1f1f;
-        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        color: #262626;
+        margin-bottom: 1.2rem;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.8rem;
     }
 
     /* 파일 업로더 스타일 */
     .stFileUploader > div {
-        border-radius: 0.5rem;
-        border: 2px dashed #e0e0e0;
+        border-radius: 12px;
+        border: 2px dashed #dbdbdb;
         background: white;
-        padding: 1rem;
+        padding: 1.5rem;
     }
 
     /* 모델 정보 스타일 */
     .model-info {
-        font-size: 0.9rem;
-        color: #666;
+        font-size: 1rem;
+        color: #8e8e8e;
         line-height: 1.6;
     }
 
     .model-info strong {
-        color: #1f1f1f;
+        color: #262626;
     }
 
     /* 사용 팁 스타일 */
     .usage-tips {
-        font-size: 0.9rem;
-        color: #666;
+        font-size: 1rem;
+        color: #8e8e8e;
         line-height: 1.6;
     }
 
     .usage-tips li {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.8rem;
     }
 
     /* 메인 컨테이너 스타일 */
@@ -157,42 +245,102 @@ st.markdown("""
         display: flex;
         flex-direction: column;
         height: 100vh;
+        max-width: 1200px;
+        margin: 0 auto;
         position: relative;
+        background-color: #fafafa;
     }
 
     /* 채팅 컨테이너 스타일 */
     .chat-container {
         flex: 1;
         overflow-y: auto;
-        padding: 1rem;
-        margin-bottom: 200px; /* 입력 영역 높이만큼 여백 추가 */
+        padding: 2rem;
+        margin-bottom: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        width: 100%;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     /* 입력 컨테이너 스타일 */
-    .input-container {
+    .bottom-container {
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
         background: white;
-        padding: 1rem;
-        border-top: 1px solid #e0e0e0;
+        border-top: 1px solid #dbdbdb;
         z-index: 1000;
+        box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .bottom-content {
         max-width: 1200px;
         margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
+        padding: 1.5rem;
+    }
+
+    /* 입력 컨테이너 스타일 */
+    .chat-input {
+        margin-bottom: 1.5rem;
     }
 
     /* 이미지 업로더 컨테이너 스타일 */
-    .image-uploader-container {
-        margin-bottom: 1rem;
+    .image-uploader {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
-    /* 채팅 입력창 스타일 */
-    .chat-input-container {
-        margin-top: 1rem;
+    /* 메시지 컨테이너 스타일 */
+    .element-container {
+        width: 100% !important;
+        max-width: 1200px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* 반응형 스타일 */
+    @media (max-width: 1200px) {
+        .stApp {
+            max-width: 100%;
+            padding: 0 1rem;
+        }
+        
+        .main-container {
+            max-width: 100%;
+        }
+        
+        .bottom-content {
+            max-width: 100%;
+        }
+        
+        .chat-container {
+            padding: 1.5rem;
+        }
+        
+        .chat-message {
+            max-width: 70%;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .chat-container {
+            padding: 1rem;
+        }
+        
+        .chat-message {
+            max-width: 85%;
+        }
+        
+        .bottom-content {
+            padding: 1rem;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -216,6 +364,8 @@ def process_pdf_upload(pdf_file):
                 return f"'{pdf_file.name}' 파일이 성공적으로 처리되어 RAG DB에 추가되었습니다."
             else:
                 return f"'{pdf_file.name}' 파일 처리 중 오류가 발생했습니다."
+        except Exception as e:
+            return f"'{pdf_file.name}' 파일 처리 중 오류가 발생했습니다: {str(e)}"
         finally:
             os.unlink(temp_file_path)
     return "PDF 파일이 업로드되지 않았습니다."
@@ -287,30 +437,38 @@ def main():
     
     # 채팅 메시지 표시 영역 (상단)
     st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-    for message in st.session_state.messages:
-        if message["role"] == "user":
-            st.markdown(f"""
-            <div class="chat-message user">
-                <img class="avatar" src="https://via.placeholder.com/40" alt="User">
-                <div class="message">{message["content"]}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            if "image" in message:
-                st.image(message["image"], width=300)
-        else:
-            st.markdown(f"""
-            <div class="chat-message assistant">
-                <img class="avatar" src="https://via.placeholder.com/40" alt="Assistant">
-                <div class="message">{message["content"]}</div>
-            </div>
-            """, unsafe_allow_html=True)
+    
+    # 메시지 표시를 위한 컨테이너
+    messages_container = st.container()
+    
+    # 메시지 표시
+    with messages_container:
+        for message in st.session_state.messages:
+            if message["role"] == "user":
+                st.markdown(f"""
+                <div class="chat-message user">
+                    <div class="message">{message["content"]}</div>
+                    <div class="avatar">👤</div>
+                </div>
+                """, unsafe_allow_html=True)
+                if "image" in message:
+                    st.image(message["image"], width=300)
+            else:
+                st.markdown(f"""
+                <div class="chat-message assistant">
+                    <div class="avatar">🤖</div>
+                    <div class="message">{message["content"]}</div>
+                </div>
+                """, unsafe_allow_html=True)
+    
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # 입력 영역 (하단)
-    st.markdown('<div class="input-container">', unsafe_allow_html=True)
-    
+    # 하단 고정 영역
+    st.markdown('<div class="bottom-container">', unsafe_allow_html=True)
+    st.markdown('<div class="bottom-content">', unsafe_allow_html=True)
+
     # 이미지 업로드
-    st.markdown('<div class="image-uploader-container">', unsafe_allow_html=True)
+    st.markdown('<div class="image-uploader">', unsafe_allow_html=True)
     uploaded_image = st.file_uploader("이미지 업로드", type=['png', 'jpg', 'jpeg'])
     image = None
     if uploaded_image:
@@ -319,12 +477,22 @@ def main():
     st.markdown('</div>', unsafe_allow_html=True)
 
     # 사용자 입력
-    st.markdown('<div class="chat-input-container">', unsafe_allow_html=True)
+    st.markdown('<div class="chat-input">', unsafe_allow_html=True)
     if prompt := st.chat_input("여기에 질문을 입력하세요..."):
         # 사용자 메시지 추가
         st.session_state.messages.append({"role": "user", "content": prompt})
-        if image:
-            st.session_state.messages[-1]["image"] = image
+        
+        # 메시지 표시 업데이트
+        with messages_container:
+            st.markdown(f"""
+            <div class="chat-message user">
+                <div class="message">{prompt}</div>
+                <div class="avatar">👤</div>
+            </div>
+            """, unsafe_allow_html=True)
+            if image:
+                st.session_state.messages[-1]["image"] = image
+                st.image(image, width=300)
 
         # 챗봇 응답 생성
         with st.spinner("생각 중..."):
@@ -337,12 +505,22 @@ def main():
                 # 스트리밍 응답
                 full_response = stream_response(response)
                 st.session_state.messages.append({"role": "assistant", "content": full_response})
+                
+                # AI 응답 표시
+                with messages_container:
+                    st.markdown(f"""
+                    <div class="chat-message assistant">
+                        <div class="avatar">🤖</div>
+                        <div class="message">{full_response}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
             except Exception as e:
                 st.error(f"오류가 발생했습니다: {str(e)}")
     st.markdown('</div>', unsafe_allow_html=True)
     
-    st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)  # bottom-content 닫기
+    st.markdown('</div>', unsafe_allow_html=True)  # bottom-container 닫기
+    st.markdown('</div>', unsafe_allow_html=True)  # main-container 닫기
 
 if __name__ == "__main__":
-    main() 
+    main()
