@@ -1,0 +1,63 @@
+{
+  "1748254846": {
+    "filename": "tmpckqgn2vk.pdf",
+    "upload_time": "2025-05-26T19:20:46.237651",
+    "status": "failed",
+    "error": "cannot import name 'PSSyntaxError' from 'pdfminer.pdfparser' (D:\\정우영\\성결대학교\\2-1학기\\자료구조\\기말경진대회\\contest\\my-ollama-chatbot\\.venv\\Lib\\site-packages\\pdfminer\\pdfparser.py)"
+  },
+  "1748254972": {
+    "filename": "tmp3g136eb3.pdf",
+    "upload_time": "2025-05-26T19:22:52.039913",
+    "status": "failed",
+    "error": "Embedding dimension 768 does not match collection dimensionality 384"
+  },
+  "1748255069": {
+    "filename": "tmpaplmvqcn.pdf",
+    "upload_time": "2025-05-26T19:24:29.985901",
+    "status": "completed",
+    "chunks": 4,
+    "total_chars": 3280
+  },
+  "1748255101": {
+    "filename": "tmp6antppoj.pdf",
+    "upload_time": "2025-05-26T19:25:01.153997",
+    "status": "completed",
+    "chunks": 4,
+    "total_chars": 3280
+  },
+  "1748255267": {
+    "filename": "tmpg7tt5aoo.pdf",
+    "upload_time": "2025-05-26T19:27:47.323048",
+    "status": "completed",
+    "chunks": 4,
+    "total_chars": 3280
+  },
+  "1748255721": {
+    "filename": "tmp14da21kp.pdf",
+    "upload_time": "2025-05-26T19:35:21.118847",
+    "status": "completed",
+    "chunks": 2,
+    "total_chars": 1229
+  },
+  "1748255733": {
+    "filename": "tmpk8sl9p5z.pdf",
+    "upload_time": "2025-05-26T19:35:33.231683",
+    "status": "completed",
+    "chunks": 2,
+    "total_chars": 1229
+  },
+  "1748256238": {
+    "filename": "tmp8c1te1xu.pdf",
+    "upload_time": "2025-05-26T19:43:58.781465",
+    "status": "completed",
+    "chunks": 2,
+    "total_chars": 1229
+  },
+  "1748256254": {
+    "filename": "tmppz51_n8y.pdf",
+    "upload_time": "2025-05-26T19:44:14.669007",
+    "status": "completed",
+    "chunks": 2,
+    "total_chars": 1229
+  }
+}
