@@ -71,10 +71,11 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
             gr.Markdown("## 모델 정보")
             gr.Markdown(
                 """
-                - **코딩/수학**: `deepseek-r1:latest` (또는 유사 모델)
-                - **복잡한 추론/이미지**: `llama3.2:latest` (또는 유사 모델, 이미지 분석은 `llava:7b` 사용 가능)
-                - **일반 질문**: `gemma:2b`
-                - **임베딩**: `nomic-embed-text`
+                - **일반 질문**: `qwen3:latest`
+                - **이미지/PDF**: `llava:7b`
+                - **복잡한 추론/이미지**: `llama3.2:latest`
+                - **코딩/수학**: `deepseek-r1:latest`
+                - **임베딩**: `nomic-embed-text:latest`
                 - **토큰 컨텍스트**: 4096
                 """
             )

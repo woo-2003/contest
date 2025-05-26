@@ -6,11 +6,11 @@ OLLAMA_BASE_URL = "http://localhost:11434"
 TOKEN_CONTEXT_LENGTH = 4096
 
 # 모델 이름 정의 (Ollama에 pull된 모델명과 일치해야 함)
-MODEL_DEEPSEEK = "deepseek-r1:latest" # 코딩, 수학
-MODEL_LLAMA3 = "llama3.2:latest" # 복잡한 추론, 이미지 분석 (llava 사용 고려)
-MODEL_GEMMA = "gemma:2b" # 일반 질문
-MODEL_EMBEDDING = "nomic-embed-text" # 임베딩용
-MODEL_IMAGE_ANALYSIS = "llava:7b" # 이미지 분석 전용 모델 (llama3가 미지원시)
+MODEL_QWEN = "qwen3:latest" # 일반 질문 메인
+MODEL_EMBEDDING = "nomic-embed-text:latest" # 임베딩용
+MODEL_LLAVA = "llava:7b" # 이미지, pdf
+MODEL_LLAMA = "llama3.2:latest" # 복잡한 추론/ 이미지 서브
+MODEL_DEEPSEEK = "deepseek-r1:latest" # 코딩/수학
 
 def get_llm(model_name: str, temperature: float = 0.1):
     """지정된 모델 이름으로 ChatOllama 인스턴스를 반환합니다."""
@@ -19,17 +19,13 @@ def get_llm(model_name: str, temperature: float = 0.1):
         model=model_name,
         temperature=temperature,
         num_ctx=TOKEN_CONTEXT_LENGTH, # 컨텍스트 길이 설정
-        # top_k=10, # 필요시 추가 파라미터 설정
-        # top_p=0.9,
-        # mirostat=1,
-        # mirostat_tau=0.1,
-        # mirostat_eta=0.1
     )
 
-llm_coding = get_llm(MODEL_DEEPSEEK)
-llm_reasoning = get_llm(MODEL_LLAMA3) # 이미지 분석도 이 모델로 시도
-llm_general = get_llm(MODEL_GEMMA)
-llm_image_analysis = get_llm(MODEL_IMAGE_ANALYSIS) # 별도 이미지 분석 모델
+llm_general = get_llm(MODEL_QWEN) # 일반 질문용
+llm_embedding = get_llm(MODEL_EMBEDDING) # 임베딩용
+llm_image = get_llm(MODEL_LLAVA) # 이미지/PDF 분석용
+llm_reasoning = get_llm(MODEL_LLAMA) # 복잡한 추론/이미지 서브
+llm_coding = get_llm(MODEL_DEEPSEEK) # 코딩/수학용
 
 # 임베딩 모델
 embeddings = OllamaEmbeddings(
@@ -39,8 +35,8 @@ embeddings = OllamaEmbeddings(
 
 # 사용 가능한 모델 목록 (라우팅 로직에서 사용)
 AVAILABLE_MODELS = {
-    "coding_math": llm_coding,
-    "reasoning": llm_reasoning,
     "general": llm_general,
-    "image_analysis": llm_image_analysis # 이미지 분석용
+    "image_analysis": llm_image,
+    "reasoning": llm_reasoning,
+    "coding_math": llm_coding
 }

@@ -5,6 +5,23 @@ from typing import List, Tuple, Optional
 import streamlit as st
 import tempfile
 import time
+import asyncio
+import warnings
+import logging
+import hashlib
+
+# 모든 경고 메시지 무시
+warnings.filterwarnings("ignore")
+
+# 로깅 레벨 설정
+logging.getLogger("streamlit").setLevel(logging.ERROR)
+logging.getLogger("torch").setLevel(logging.ERROR)
+logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
+logging.getLogger("chromadb").setLevel(logging.ERROR)
+
+# Streamlit 설정
+os.environ['STREAMLIT_SERVER_WATCH_DIRS'] = 'false'  # 파일 감시 비활성화
+os.environ['STREAMLIT_SERVER_HEADLESS'] = 'true'     # 헤드리스 모드 활성화
 
 # 현재 파일의 절대 경로를 기준으로 상위 디렉토리를 sys.path에 추가
 current_file_dir = os.path.dirname(os.path.abspath(__file__))
@@ -13,6 +30,27 @@ sys.path.insert(0, parent_dir)
 
 from multi_agent_chatbot.agent_logic import run_graph
 from multi_agent_chatbot.rag_handler import process_and_embed_pdf, PDF_STORAGE_PATH
+
+# 이미지 캐싱을 위한 함수
+@st.cache_data
+def load_image(image_file):
+    return Image.open(image_file)
+
+@st.cache_data
+def get_image_hash(image):
+    return hashlib.md5(image.tobytes()).hexdigest()
+
+# 비동기 이벤트 루프 설정
+def setup_event_loop():
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    return loop
+
+# 이벤트 루프 설정
+loop = setup_event_loop()
 
 # 페이지 설정 (반드시 첫 번째 Streamlit 명령어여야 함)
 st.set_page_config(
@@ -509,10 +547,11 @@ def main():
         st.markdown('<h2>🤖 모델 정보</h2>', unsafe_allow_html=True)
         st.markdown("""
         <div class="model-info">
-            <p><strong>코딩/수학</strong>: deepseek-coder:6.7b</p>
-            <p><strong>복잡한 추론/이미지</strong>: llama3:8b</p>
-            <p><strong>일반 질문</strong>: gemma:2b</p>
-            <p><strong>임베딩</strong>: nomic-embed-text</p>
+            <p><strong>일반 질문</strong>: qwen3:latest</p>
+            <p><strong>이미지/PDF</strong>: llava:7b</p>
+            <p><strong>복잡한 추론/이미지</strong>: llama3.2:latest</p>
+            <p><strong>코딩/수학</strong>: deepseek-r1:latest</p>
+            <p><strong>임베딩</strong>: nomic-embed-text:latest</p>
             <p><strong>벡터DB</strong>: ChromaDB</p>
         </div>
         """, unsafe_allow_html=True)
@@ -588,7 +627,7 @@ def main():
     uploaded_image = st.file_uploader("이미지 업로드", type=['png', 'jpg', 'jpeg'])
     image = None
     if uploaded_image:
-        image = Image.open(uploaded_image)
+        image = load_image(uploaded_image)  # 캐시된 이미지 로드 함수 사용
         st.image(image, width=200)
     st.markdown('</div>', unsafe_allow_html=True)
 

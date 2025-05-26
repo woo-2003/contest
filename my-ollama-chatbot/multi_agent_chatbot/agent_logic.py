@@ -5,7 +5,7 @@ from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from langgraph.graph import StateGraph, END
 import operator
 
-from .llm_config import AVAILABLE_MODELS, llm_general, llm_coding, llm_reasoning
+from .llm_config import AVAILABLE_MODELS, llm_general, llm_coding, llm_reasoning, llm_image
 from .rag_handler import get_rag_retriever, query_rag
 from .image_handler import analyze_image_with_llm
 from PIL import Image
@@ -100,6 +100,7 @@ def llm_call_node(state: AgentState) -> AgentState:
         # 다음 라우팅에서 적절한 LLM으로 연결되어야 함.
         # 여기서는 image_analysis_result나 rag_context를 사용해 일반 LLM으로 질문을 다시 구성
         llm = llm_general 
+        model_name = "qwen3:latest"  # 일반 질문용 모델
         
         # 컨텍스트를 포함하여 새로운 질문 구성
         if image_analysis_context and rag_context:
@@ -116,7 +117,18 @@ def llm_call_node(state: AgentState) -> AgentState:
             effective_query = f"참고 이미지 분석: {image_analysis_context}\n\n질문: {query}"
         if rag_context: # RAG 결과가 있다면 프롬프트에 추가
             effective_query = f"참고 문서: {rag_context}\n\n질문: {effective_query}"
-
+        
+        # 사용 중인 모델 이름 설정
+        if agent_name == "coding_math":
+            model_name = "deepseek-r1:latest"
+        elif agent_name == "reasoning":
+            model_name = "llama3.2:latest"
+        elif agent_name == "general":
+            model_name = "qwen3:latest"
+        elif agent_name == "image_analysis":
+            model_name = "llava:7b"
+        else:
+            model_name = "unknown"
 
     print(f"Calling LLM ({agent_name if agent_name in AVAILABLE_MODELS else 'general_fallback'}) with query: {effective_query[:200]}...")
 
@@ -136,6 +148,9 @@ def llm_call_node(state: AgentState) -> AgentState:
     response = chain.invoke({"chat_history_placeholder": history, "input": effective_query})
     
     output_message = response.content if hasattr(response, 'content') else str(response)
+    
+    # 모델 정보를 응답에 추가
+    output_message = f"[사용 모델: {model_name}]\n\n{output_message}"
     
     return {"output_message": output_message}
 
