@@ -59,5 +59,33 @@
     "status": "completed",
     "chunks": 2,
     "total_chars": 1229
+  },
+  "1748349756": {
+    "filename": "tmpulnhiavr.pdf",
+    "upload_time": "2025-05-27T21:42:36.171647",
+    "status": "completed",
+    "chunks": 1,
+    "total_chars": 454
+  },
+  "1748349802": {
+    "filename": "tmpia66ecib.pdf",
+    "upload_time": "2025-05-27T21:43:22.017535",
+    "status": "completed",
+    "chunks": 1,
+    "total_chars": 454
+  },
+  "1748349811": {
+    "filename": "tmpcgr5ndu3.pdf",
+    "upload_time": "2025-05-27T21:43:31.580489",
+    "status": "completed",
+    "chunks": 1,
+    "total_chars": 454
+  },
+  "1748349819": {
+    "filename": "tmp8d4ztv_m.pdf",
+    "upload_time": "2025-05-27T21:43:39.620503",
+    "status": "completed",
+    "chunks": 1,
+    "total_chars": 454
   }
 }

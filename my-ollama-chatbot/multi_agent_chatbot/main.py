@@ -54,7 +54,7 @@ loop = setup_event_loop()
 
 # 페이지 설정 (반드시 첫 번째 Streamlit 명령어여야 함)
 st.set_page_config(
-    page_title="멀티 에이전트 AI 챗봇",
+    page_title="멀티 에이전트 AI OING",
     page_icon="🤖",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -520,7 +520,7 @@ def main():
         st.markdown("""
         <div class="sidebar-header">
             <img src="https://i.postimg.cc/y8Jckyhh/big2.png" alt="Logo">
-            <h1>인공지능 에이젼트 "오잉"</h1>
+            <h1>인공지능 "오잉"</h1>
         </div>
         """, unsafe_allow_html=True)
         
@@ -585,7 +585,7 @@ def main():
         if not st.session_state.messages:
             st.markdown(f"""
             <div class="chat-message assistant">
-                <div class="avatar">🤖</div>
+                <div class="avatar"><img src="https://i.postimg.cc/y8Jckyhh/big2.png" alt="Logo"></div>
                 <div class="message">
                     안녕하세요! 저는 멀티 에이전트 AI "OING"입니다. 🤖<br><br>
                     저는 다음과 같은 도움을 드릴 수 있습니다:<br>

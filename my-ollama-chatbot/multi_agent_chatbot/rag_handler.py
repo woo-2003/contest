@@ -200,19 +200,60 @@ def process_and_embed_pdf(pdf_path: str) -> bool:
             save_pdf_metadata()
         return False
 
-def get_relevant_documents(query: str, k: int = 4) -> List[Document]:
+def get_relevant_documents(query: str, k: int = 3) -> List[Document]:
     """
     쿼리와 관련된 문서를 검색합니다.
-    """
-    if vectorstore is None:
-        return []
     
+    Args:
+        query (str): 검색 쿼리
+        k (int): 반환할 문서 수
+        
+    Returns:
+        List[Document]: 관련 문서 리스트
+    """
     try:
-        # 유사도 검색 수행
-        docs = vectorstore.similarity_search(query, k=k)
-        return docs
+        # 쿼리 전처리
+        processed_query = query.strip().lower()
+        
+        # ChromaDB 검색
+        results = vectorstore.query(
+            query_texts=[processed_query],
+            n_results=k,
+            include=["documents", "metadatas", "distances"]
+        )
+        
+        if not results["documents"][0]:
+            logger.warning(f"검색 결과 없음: {query}")
+            return []
+        
+        # 결과를 Document 객체로 변환
+        documents = []
+        for doc, metadata, distance in zip(
+            results["documents"][0],
+            results["metadatas"][0],
+            results["distances"][0]
+        ):
+            # 관련성 점수 계산 (거리를 0-1 사이의 점수로 변환)
+            relevance_score = 1.0 - min(distance, 1.0)
+            
+            # 메타데이터에 관련성 점수 추가
+            metadata["relevance_score"] = relevance_score
+            
+            # Document 객체 생성
+            document = Document(
+                page_content=doc,
+                metadata=metadata
+            )
+            documents.append(document)
+        
+        # 관련성 점수로 정렬
+        documents.sort(key=lambda x: x.metadata.get("relevance_score", 0), reverse=True)
+        
+        logger.info(f"검색 완료: {len(documents)}개 문서 발견")
+        return documents
+        
     except Exception as e:
-        logger.error(f"Error retrieving documents: {e}")
+        logger.error(f"문서 검색 중 오류 발생: {str(e)}", exc_info=True)
         return []
 
 def create_rag_chain():
@@ -245,34 +286,41 @@ def create_rag_chain():
         logger.error(f"Error creating RAG chain: {e}")
         return None
 
-def query_pdf_content(query: str, chat_history: List[Tuple[str, str]] = None) -> str:
+def query_pdf_content(query: str, k: int = 3) -> str:
     """
-    PDF 내용에 대해 질문하고 답변을 반환합니다.
+    PDF 내용을 검색하고 관련 컨텍스트를 생성합니다.
+    
+    Args:
+        query (str): 검색 쿼리
+        k (int): 반환할 문서 수
+        
+    Returns:
+        str: 검색 결과 컨텍스트
     """
     try:
-        chain = create_rag_chain()
-        if chain is None:
-            return "PDF 데이터베이스가 초기화되지 않았습니다. PDF를 먼저 업로드해주세요."
+        # 관련 문서 검색
+        relevant_docs = get_relevant_documents(query, k=k)
         
-        # 쿼리 실행
-        result = chain({"question": query, "chat_history": chat_history or []})
+        if not relevant_docs:
+            return "관련 정보를 찾을 수 없습니다."
         
-        # 소스 문서 정보 추가
-        sources = []
-        for doc in result.get("source_documents", []):
-            if "filename" in doc.metadata:
-                sources.append(doc.metadata["filename"])
+        # 컨텍스트 생성
+        context_parts = []
+        for doc in relevant_docs:
+            # 관련성 점수가 0.5 이상인 경우만 포함
+            if doc.metadata.get("relevance_score", 0) >= 0.5:
+                source = doc.metadata.get("source", "알 수 없는 출처")
+                page = doc.metadata.get("page", "알 수 없는 페이지")
+                context_parts.append(f"[출처: {source}, 페이지: {page}]\n{doc.page_content}")
         
-        # 답변과 소스 정보 결합
-        answer = result["answer"]
-        if sources:
-            answer += f"\n\n참고한 문서: {', '.join(set(sources))}"
+        if not context_parts:
+            return "관련성 높은 정보를 찾을 수 없습니다."
         
-        return answer
+        return "\n\n".join(context_parts)
         
     except Exception as e:
-        logger.error(f"Error querying PDF content: {e}")
-        return f"PDF 내용을 검색하는 중 오류가 발생했습니다: {str(e)}"
+        logger.error(f"PDF 내용 검색 중 오류 발생: {str(e)}", exc_info=True)
+        return "문서 검색 중 오류가 발생했습니다."
 
 def list_available_collections() -> List[str]:
     """
