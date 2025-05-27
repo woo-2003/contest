@@ -519,8 +519,8 @@ def main():
         # 사이드바 헤더
         st.markdown("""
         <div class="sidebar-header">
-            <img src="https://via.placeholder.com/150" alt="Logo">
-            <h1>멀티 에이전트 AI 챗봇</h1>
+            <img src="https://i.postimg.cc/y8Jckyhh/big2.png" alt="Logo">
+            <h1>인공지능 에이젼트 "오잉"</h1>
         </div>
         """, unsafe_allow_html=True)
         
@@ -587,7 +587,7 @@ def main():
             <div class="chat-message assistant">
                 <div class="avatar">🤖</div>
                 <div class="message">
-                    안녕하세요! 저는 멀티 에이전트 AI 챗봇입니다. 🤖<br><br>
+                    안녕하세요! 저는 멀티 에이전트 AI "OING"입니다. 🤖<br><br>
                     저는 다음과 같은 도움을 드릴 수 있습니다:<br>
                     • PDF 문서 기반 질문 답변 📚<br>
                     • 이미지 분석 및 설명 🖼️<br>
