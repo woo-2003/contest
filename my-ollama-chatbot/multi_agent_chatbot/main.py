@@ -73,59 +73,83 @@ st.markdown("""
         min-height: 100vh;
     }
 
-    /* Streamlit 기본 여백 제거 */
-    .main .block-container {
-        padding-top: 0 !important;
+    /* 테마별 스타일 */
+    /* 기본 테마 */
+    .theme-기본-테마 .chat-message.user .message {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
     }
 
-    /* 빈 컨테이너 숨기기 */
-    div[data-testid="stVerticalBlock"] > div:empty,
-    div[data-testid="stVerticalBlock"] > div > div:empty,
-    div[data-testid="stVerticalBlock"] > div > div > div:empty,
-    div[data-testid="stVerticalBlock"] > div > div > div > div:empty,
-    div[data-testid="stVerticalBlock"] > div > div > div > div > div:empty,
-    div[data-testid="stVerticalBlock"] > div > div > div > div > div > div:empty {
-        display: none !important;
-        height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        min-height: 0 !important;
-        max-height: 0 !important;
-        overflow: hidden !important;
+    .theme-기본-테마 .chat-message.user .message::before {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     }
 
-    /* 메인 컨테이너 스타일 */
-    .main-container {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        max-width: 1200px;
-        margin: 0 auto;
-        position: relative;
-        background-color: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border-radius: 24px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
+    .theme-기본-테마 .chat-message.assistant .message {
+        background-color: #f8fafc;
+        color: #1e293b;
     }
 
-    /* 채팅 컨테이너 스타일 */
-    .chat-container {
-        flex: 1;
-        overflow-y: auto;
-        padding: 2rem;
-        margin-bottom: 200px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        width: 100%;
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-        scroll-behavior: smooth;
+    /* 인스타그램 DM 스타일 */
+    .theme-인스타그램-dm .chat-message.user .message {
+        background: linear-gradient(135deg, #405DE6 0%, #5851DB 100%);
+        color: white;
     }
 
-    /* 채팅 메시지 스타일 */
+    .theme-인스타그램-dm .chat-message.user .message::before {
+        background: linear-gradient(135deg, #405DE6 0%, #5851DB 100%);
+    }
+
+    .theme-인스타그램-dm .chat-message.assistant .message {
+        background-color: #f8f9fa;
+        color: #262626;
+    }
+
+    /* 카카오톡 스타일 */
+    .theme-카카오톡 .chat-message.user .message {
+        background: #FEE500;
+        color: #3C1E1E;
+    }
+
+    .theme-카카오톡 .chat-message.user .message::before {
+        background: #FEE500;
+    }
+
+    .theme-카카오톡 .chat-message.assistant .message {
+        background-color: #FFFFFF;
+        color: #3C1E1E;
+    }
+
+    /* 라인 스타일 */
+    .theme-라인 .chat-message.user .message {
+        background: #00B900;
+        color: white;
+    }
+
+    .theme-라인 .chat-message.user .message::before {
+        background: #00B900;
+    }
+
+    .theme-라인 .chat-message.assistant .message {
+        background-color: #FFFFFF;
+        color: #333333;
+    }
+
+    /* 페이스북 메신저 스타일 */
+    .theme-페이스북-메신저 .chat-message.user .message {
+        background: #0084FF;
+        color: white;
+    }
+
+    .theme-페이스북-메신저 .chat-message.user .message::before {
+        background: #0084FF;
+    }
+
+    .theme-페이스북-메신저 .chat-message.assistant .message {
+        background-color: #E9EBEB;
+        color: #1C1E21;
+    }
+
+    /* 공통 스타일 */
     .chat-message {
         display: flex;
         align-items: flex-start;
@@ -152,15 +176,13 @@ st.markdown("""
     }
     
     .chat-message.user .message {
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        color: white;
         border-radius: 20px;
         border-bottom-right-radius: 4px;
         padding: 14px 24px;
         margin-left: 0;
         font-size: 15px;
         line-height: 1.6;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         order: 2;
         max-width: calc(100% - 48px);
         transition: all 0.3s ease;
@@ -174,7 +196,6 @@ st.markdown("""
         bottom: 0;
         width: 20px;
         height: 20px;
-        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
         clip-path: polygon(0 0, 100% 100%, 0 100%);
     }
     
@@ -186,7 +207,7 @@ st.markdown("""
     
     .chat-message.user .message:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     }
     
     /* AI 메시지 스타일 */
@@ -199,8 +220,6 @@ st.markdown("""
     }
     
     .chat-message.assistant .message {
-        background-color: #f8fafc;
-        color: #1e293b;
         border-radius: 20px;
         border-bottom-left-radius: 4px;
         padding: 14px 24px;
@@ -475,6 +494,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "streaming" not in st.session_state:
     st.session_state.streaming = False
+if "theme" not in st.session_state:
+    st.session_state.theme = "OING PURPLE(기본 색상)"
 
 def start_new_chat():
     """새로운 채팅을 시작하는 함수"""
@@ -513,6 +534,87 @@ def stream_response(response_text):
     response_container.markdown(full_response)
     return full_response
 
+def get_theme_colors(theme):
+    """테마별 전체 색상 반환"""
+    colors = {
+        "OING PURPLE(기본 색상)": {
+            "primary": "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+            "primary_solid": "#6366f1",
+            "user_message": "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+            "assistant_message": "#f8fafc",
+            "user_text": "white",
+            "assistant_text": "#1e293b",
+            "background": "linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%)",
+            "container_bg": "rgba(255, 255, 255, 0.95)",
+            "chat_area_bg": "rgba(248, 250, 252, 0.8)",
+            "button": "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+            "button_text": "white",
+            "sidebar_bg": "rgba(255, 255, 255, 0.95)",
+            "border": "rgba(226, 232, 240, 0.8)"
+        },
+        "FLAME RED": {
+            "primary": "linear-gradient(45deg, #833AB4, #FD1D1D, #F56040, #FFDC80)",
+            "primary_solid": "#833AB4",
+            "user_message": "linear-gradient(45deg, #833AB4, #FD1D1D, #F56040, #FFDC80)",
+            "assistant_message": "#f8f9fa",
+            "user_text": "white",
+            "assistant_text": "#262626",
+            "background": "linear-gradient(135deg, #fafafa 0%, #e4e4e4 100%)",
+            "container_bg": "rgba(255, 255, 255, 0.95)",
+            "chat_area_bg": "rgba(248, 249, 250, 0.8)",
+            "button": "linear-gradient(45deg, #833AB4, #FD1D1D, #F56040, #FFDC80)",
+            "button_text": "white",
+            "sidebar_bg": "linear-gradient(135deg, #833AB4 0%, #FD1D1D 100%)",
+            "border": "rgba(226, 232, 240, 0.8)"
+        },
+        "KAKAO YELLOW": {
+            "primary": "linear-gradient(90deg, #FEE500 0%, #FFD600 100%)",
+            "primary_solid": "#FEE500",
+            "user_message": "linear-gradient(90deg, #FEE500 0%, #FFD600 100%)",
+            "assistant_message": "#FFFFFF",
+            "user_text": "#3C1E1E",
+            "assistant_text": "#3C1E1E",
+            "background": "linear-gradient(135deg, #f9f9f9 0%, #e6e6e6 100%)",
+            "container_bg": "rgba(255, 255, 255, 0.95)",
+            "chat_area_bg": "rgba(255, 255, 255, 0.8)",
+            "button": "linear-gradient(90deg, #FEE500 0%, #FFD600 100%)",
+            "button_text": "#3C1E1E",
+            "sidebar_bg": "linear-gradient(135deg, #FEE500 0%, #FFD600 100%)",
+            "border": "rgba(226, 232, 240, 0.8)"
+        },
+        "FOREST GREEN": {
+            "primary": "linear-gradient(90deg, #00C300, #32D74B)",
+            "primary_solid": "#00C300",
+            "user_message": "linear-gradient(90deg, #00C300, #32D74B)",
+            "assistant_message": "#FFFFFF",
+            "user_text": "white",
+            "assistant_text": "#333333",
+            "background": "linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%)",
+            "container_bg": "rgba(255, 255, 255, 0.95)",
+            "chat_area_bg": "rgba(255, 255, 255, 0.8)",
+            "button": "linear-gradient(90deg, #00C300, #32D74B)",
+            "button_text": "white",
+            "sidebar_bg": "linear-gradient(135deg, #00C300 0%, #32D74B 100%)",
+            "border": "rgba(226, 232, 240, 0.8)"
+        },
+        "OCEAN BLUE": {
+            "primary": "linear-gradient(45deg, #0084FF, #44BEC7, #E5457F)",
+            "primary_solid": "#0084FF",
+            "user_message": "linear-gradient(45deg, #0084FF, #44BEC7, #E5457F)",
+            "assistant_message": "#E9EBEB",
+            "user_text": "white",
+            "assistant_text": "#1C1E21",
+            "background": "linear-gradient(135deg, #f0f2f5 0%, #e4e6eb 100%)",
+            "container_bg": "rgba(255, 255, 255, 0.95)",
+            "chat_area_bg": "rgba(233, 235, 235, 0.8)",
+            "button": "linear-gradient(45deg, #0084FF, #44BEC7, #E5457F)",
+            "button_text": "white",
+            "sidebar_bg": "linear-gradient(135deg, #0084FF 0%, #E5457F 100%)",
+            "border": "rgba(226, 232, 240, 0.8)"
+        }
+    }
+    return colors.get(theme, colors["OING PURPLE(기본 색상)"])
+
 def main():
     # 사이드바 설정
     with st.sidebar:
@@ -530,6 +632,23 @@ def main():
         if st.button("새로운 채팅 시작", key="new_chat", use_container_width=True):
             start_new_chat()
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # 테마 선택
+        st.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
+        st.markdown('<h2>🎨 테마 선택</h2>', unsafe_allow_html=True)
+        themes = ["OING PURPLE(기본 색상)", "FLAME RED", "KAKAO YELLOW", "FOREST GREEN", "OCEAN BLUE"]
+        theme = st.radio(
+            "채팅 테마를 선택하세요",
+            themes,
+            index=themes.index(st.session_state.theme)
+        )
+        
+        # 테마 변경 시 세션 상태 업데이트
+        if theme != st.session_state.theme:
+            st.session_state.theme = theme
+            st.rerun()
+            
         st.markdown('</div>', unsafe_allow_html=True)
         
         # RAG 설정
@@ -572,7 +691,83 @@ def main():
         st.markdown('</div>', unsafe_allow_html=True)
 
     # 메인 컨테이너
-    st.markdown('<div class="main-container">', unsafe_allow_html=True)
+    theme_class = st.session_state.theme.lower().replace(" ", "-")
+    theme_colors = get_theme_colors(st.session_state.theme)
+    
+    # 테마별 스타일 동적 적용
+    st.markdown(f"""
+    <style>
+        /* 전체 페이지 스타일 */
+        .stApp {{
+            background: {theme_colors['background']} !important;
+        }}
+
+        /* 메인 컨테이너 스타일 */
+        .main-container {{
+            background-color: {theme_colors['container_bg']};
+            border: 1px solid {theme_colors['border']};
+        }}
+
+        /* 채팅 영역 스타일 */
+        .chat-container {{
+            background-color: {theme_colors['chat_area_bg']};
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }}
+
+        /* 채팅 메시지 스타일 */
+        .chat-message.user .message {{
+            background: {theme_colors['user_message']};
+            color: {theme_colors['user_text']};
+        }}
+
+        .chat-message.user .message::before {{
+            background: {theme_colors['user_message']};
+        }}
+
+        .chat-message.assistant .message {{
+            background: {theme_colors['assistant_message']};
+            color: {theme_colors['assistant_text']};
+        }}
+
+        /* 버튼 스타일 */
+        .stButton > button {{
+            background: {theme_colors['button']};
+            color: {theme_colors['button_text']};
+        }}
+
+        /* 사이드바 스타일 */
+        .css-1d391kg {{
+            background-color: {theme_colors['sidebar_bg']};
+            border-right: 1px solid {theme_colors['border']};
+        }}
+
+        /* 입력 필드 스타일 */
+        .stTextInput > div > div > input:focus {{
+            border-color: {theme_colors['primary_solid']};
+            box-shadow: 0 4px 12px {theme_colors['primary_solid']}33;
+        }}
+
+        /* 파일 업로더 스타일 */
+        .stFileUploader > div:hover {{
+            border-color: {theme_colors['primary_solid']};
+            box-shadow: 0 4px 12px {theme_colors['primary_solid']}1A;
+        }}
+
+        /* 스크롤바 스타일 */
+        ::-webkit-scrollbar-thumb {{
+            background: {theme_colors['primary_solid']}80;
+        }}
+
+        ::-webkit-scrollbar-thumb:hover {{
+            background: {theme_colors['primary_solid']};
+        }}
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown(f'<div class="main-container theme-{theme_class}">', unsafe_allow_html=True)
     
     # 채팅 메시지 표시 영역 (상단)
     st.markdown('<div class="chat-container">', unsafe_allow_html=True)

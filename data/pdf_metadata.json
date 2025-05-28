@@ -1,91 +1,44 @@
 {
-  "1748254846": {
-    "filename": "tmpckqgn2vk.pdf",
-    "upload_time": "2025-05-26T19:20:46.237651",
-    "status": "failed",
-    "error": "cannot import name 'PSSyntaxError' from 'pdfminer.pdfparser' (D:\\정우영\\성결대학교\\2-1학기\\자료구조\\기말경진대회\\contest\\my-ollama-chatbot\\.venv\\Lib\\site-packages\\pdfminer\\pdfparser.py)"
+  "1748414257": {
+    "filename": "tmph4a7kf56.pdf",
+    "upload_time": "2025-05-28T15:37:37.730787",
+    "status": "completed",
+    "chunks": 522,
+    "total_chars": 417779
   },
-  "1748254972": {
-    "filename": "tmp3g136eb3.pdf",
-    "upload_time": "2025-05-26T19:22:52.039913",
-    "status": "failed",
-    "error": "Embedding dimension 768 does not match collection dimensionality 384"
+  "1748415544": {
+    "filename": "tmp10_3fz0w.pdf",
+    "upload_time": "2025-05-28T15:59:04.790682",
+    "status": "completed",
+    "chunks": 522,
+    "total_chars": 417779
   },
-  "1748255069": {
-    "filename": "tmpaplmvqcn.pdf",
-    "upload_time": "2025-05-26T19:24:29.985901",
+  "1748415650": {
+    "filename": "tmpwhw_qz6n.pdf",
+    "upload_time": "2025-05-28T16:00:50.612735",
     "status": "completed",
     "chunks": 4,
     "total_chars": 3280
   },
-  "1748255101": {
-    "filename": "tmp6antppoj.pdf",
-    "upload_time": "2025-05-26T19:25:01.153997",
+  "1748415682": {
+    "filename": "tmpbe0dsgk1.pdf",
+    "upload_time": "2025-05-28T16:01:22.109083",
     "status": "completed",
     "chunks": 4,
     "total_chars": 3280
   },
-  "1748255267": {
-    "filename": "tmpg7tt5aoo.pdf",
-    "upload_time": "2025-05-26T19:27:47.323048",
-    "status": "completed",
-    "chunks": 4,
-    "total_chars": 3280
-  },
-  "1748255721": {
-    "filename": "tmp14da21kp.pdf",
-    "upload_time": "2025-05-26T19:35:21.118847",
+  "1748415750": {
+    "filename": "tmpjc0obxgk.pdf",
+    "upload_time": "2025-05-28T16:02:30.184672",
     "status": "completed",
     "chunks": 2,
     "total_chars": 1229
   },
-  "1748255733": {
-    "filename": "tmpk8sl9p5z.pdf",
-    "upload_time": "2025-05-26T19:35:33.231683",
+  "1748415780": {
+    "filename": "tmpzr2cwzs0.pdf",
+    "upload_time": "2025-05-28T16:03:00.636779",
     "status": "completed",
     "chunks": 2,
     "total_chars": 1229
-  },
-  "1748256238": {
-    "filename": "tmp8c1te1xu.pdf",
-    "upload_time": "2025-05-26T19:43:58.781465",
-    "status": "completed",
-    "chunks": 2,
-    "total_chars": 1229
-  },
-  "1748256254": {
-    "filename": "tmppz51_n8y.pdf",
-    "upload_time": "2025-05-26T19:44:14.669007",
-    "status": "completed",
-    "chunks": 2,
-    "total_chars": 1229
-  },
-  "1748349756": {
-    "filename": "tmpulnhiavr.pdf",
-    "upload_time": "2025-05-27T21:42:36.171647",
-    "status": "completed",
-    "chunks": 1,
-    "total_chars": 454
-  },
-  "1748349802": {
-    "filename": "tmpia66ecib.pdf",
-    "upload_time": "2025-05-27T21:43:22.017535",
-    "status": "completed",
-    "chunks": 1,
-    "total_chars": 454
-  },
-  "1748349811": {
-    "filename": "tmpcgr5ndu3.pdf",
-    "upload_time": "2025-05-27T21:43:31.580489",
-    "status": "completed",
-    "chunks": 1,
-    "total_chars": 454
-  },
-  "1748349819": {
-    "filename": "tmp8d4ztv_m.pdf",
-    "upload_time": "2025-05-27T21:43:39.620503",
-    "status": "completed",
-    "chunks": 1,
-    "total_chars": 454
   }
 }
