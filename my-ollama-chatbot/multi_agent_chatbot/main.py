@@ -10,14 +10,19 @@ import warnings
 import logging
 import hashlib
 
+# 로깅 설정
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    return logging.getLogger(__name__)
+
+# 로거 초기화
+logger = setup_logging()
+
 # 모든 경고 메시지 무시
 warnings.filterwarnings("ignore")
-
-# 로깅 레벨 설정
-logging.getLogger("streamlit").setLevel(logging.ERROR)
-logging.getLogger("torch").setLevel(logging.ERROR)
-logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
-logging.getLogger("chromadb").setLevel(logging.ERROR)
 
 # Streamlit 설정
 os.environ['STREAMLIT_SERVER_WATCH_DIRS'] = 'false'  # 파일 감시 비활성화
@@ -28,8 +33,21 @@ current_file_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_file_dir)
 sys.path.insert(0, parent_dir)
 
-from multi_agent_chatbot.agent_logic import run_graph
-from multi_agent_chatbot.rag_handler import process_and_embed_pdf, PDF_STORAGE_PATH
+from multi_agent_chatbot.agent_logic import (
+    run_graph,
+    get_specialized_response,
+    handle_specialized_request
+)
+from multi_agent_chatbot.rag_handler import (
+    process_and_embed_pdf, 
+    PDF_STORAGE_PATH, 
+    verify_data_persistence, 
+    get_database_status,
+    initialize_data,
+    get_initialized_vectorstore,
+    process_multiple_pdfs,
+    validate_pdf
+)
 
 # 이미지 캐싱을 위한 함수
 @st.cache_data
@@ -489,6 +507,11 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# 데이터베이스 초기화
+if not get_initialized_vectorstore():
+    st.error("데이터베이스 초기화에 실패했습니다.")
+    st.stop()
+
 # 세션 상태 초기화
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -510,6 +533,12 @@ def process_pdf_upload(pdf_file):
             temp_file_path = tmp_file.name
 
         try:
+            # PDF 파일 검증
+            is_valid, error_message = validate_pdf(temp_file_path)
+            if not is_valid:
+                return f"'{pdf_file.name}' 파일 검증 실패: {error_message}"
+
+            # PDF 처리
             success = process_and_embed_pdf(temp_file_path)
             if success:
                 return f"'{pdf_file.name}' 파일이 성공적으로 처리되어 RAG DB에 추가되었습니다."
@@ -615,9 +644,87 @@ def get_theme_colors(theme):
     }
     return colors.get(theme, colors["OING PURPLE(기본 색상)"])
 
+def initialize_session_state():
+    """세션 상태 초기화"""
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    if "vector_store" not in st.session_state:
+        st.session_state.vector_store = None
+    if "pdf_metadata" not in st.session_state:
+        st.session_state.pdf_metadata = {}
+    if "conversation_started" not in st.session_state:
+        st.session_state.conversation_started = False
+    if "streaming" not in st.session_state:
+        st.session_state.streaming = False
+    if "theme" not in st.session_state:
+        st.session_state.theme = "OING PURPLE(기본 색상)"
+
+def get_conversation_starters():
+    """대화 스타터 목록 반환"""
+    return {
+        "📝 초안 작성하기": "안녕하세요! 어떤 주제의 초안을 작성하시겠습니까? 목적과 주요 내용을 알려주시면 도와드리겠습니다.",
+        "✈️ 여행 계획 세우기": "어떤 여행을 계획하고 계신가요? 목적지, 기간, 예산 등을 알려주시면 맞춤형 여행 계획을 제안해드리겠습니다.",
+        "💰 맞춤 적금 알아보기": "적금 상품을 찾고 계신가요? 목표 금액, 기간, 월 저축 가능 금액을 알려주시면 최적의 적금 상품을 추천해드리겠습니다.",
+        "🌐 언어 번역하기": "어떤 언어로 번역이 필요하신가요? 원본 텍스트를 입력해주시면 정확한 번역을 제공해드리겠습니다.",
+        "📚 PDF 내용 분석하기": "PDF 문서의 내용을 분석하고 싶으신가요? PDF를 업로드해주시면 주요 내용을 요약하고 질문에 답변해드리겠습니다.",
+        "🔍 웹 검색 도우미": "어떤 정보를 찾고 계신가요? 검색어를 입력해주시면 관련 정보를 찾아드리겠습니다."
+    }
+
+def handle_conversation_starter(starter_text):
+    """대화 스타터 처리"""
+    st.session_state.conversation_started = True
+    st.session_state.messages.append({"role": "assistant", "content": starter_text})
+    return starter_text
+
+def get_ai_response(prompt: str) -> str:
+    """AI 응답 생성"""
+    try:
+        # 대화 스타터 관련 키워드 확인
+        starter_keywords = {
+            "초안": "초안 작성",
+            "여행": "여행 계획",
+            "적금": "적금 상품",
+            "번역": "번역",
+            "PDF": "PDF 분석",
+            "검색": "웹 검색"
+        }
+        
+        # 키워드 기반으로 요청 유형 결정
+        request_type = None
+        for keyword, req_type in starter_keywords.items():
+            if keyword in prompt:
+                request_type = req_type
+                break
+        
+        if request_type:
+            # 특수 목적 요청 처리
+            return handle_specialized_request(prompt, request_type)
+        
+        # PDF 관련 질문인 경우
+        if hasattr(st.session_state, 'vector_store') and st.session_state.vector_store is not None:
+            response = query_pdf_content(prompt)
+            if response and "관련 정보를 찾지 못했습니다" not in response:
+                return response
+        
+        # 일반 대화 처리
+        return run_graph(prompt, [(m["content"], "") for m in st.session_state.messages if m["role"] == "user"])
+        
+    except Exception as e:
+        error_msg = f"AI 응답 생성 중 오류 발생: {str(e)}"
+        print(error_msg)  # 기본 출력 사용
+        return f"죄송합니다. 응답을 생성하는 중에 오류가 발생했습니다. 오류 내용: {str(e)}"
+
 def main():
+    # 세션 상태 초기화
+    initialize_session_state()
+    
     # 사이드바 설정
     with st.sidebar:
+        st.title("Multi-Agency AI Secretary")
+        
+        # 기존 사이드바 내용
+        st.subheader("Optimal Intellect Navigat Guardian")
+        
         # 사이드바 헤더
         st.markdown("""
         <div class="sidebar-header">
@@ -634,6 +741,33 @@ def main():
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
         
+        # RAG 설정
+        st.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
+        st.markdown('<h2>📚 RAG 설정</h2>', unsafe_allow_html=True)
+        
+        # PDF 파일 업로드 (여러 파일 지원)
+        pdf_files = st.file_uploader("PDF 파일 업로드", type=['pdf'], accept_multiple_files=True)
+        if pdf_files:
+            with st.spinner("PDF 처리 중..."):
+                # 파일 내용 수집
+                files_to_process = [(f.name, f.getvalue()) for f in pdf_files]
+                
+                # 여러 PDF 처리
+                results = process_multiple_pdfs(files_to_process)
+                
+                # 결과 표시
+                success_count = sum(1 for success in results.values() if success)
+                st.info(f"처리 완료 - 성공: {success_count}, 실패: {len(results) - success_count}")
+                
+                # 실패한 파일이 있다면 표시
+                failed_files = [name for name, success in results.items() if not success]
+                if failed_files:
+                    st.warning("다음 파일들의 처리에 실패했습니다:")
+                    for file in failed_files:
+                        st.warning(f"- {file}")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
         # 테마 선택
         st.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
         st.markdown('<h2>🎨 테마 선택</h2>', unsafe_allow_html=True)
@@ -649,16 +783,6 @@ def main():
             st.session_state.theme = theme
             st.rerun()
             
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # RAG 설정
-        st.markdown('<div class="sidebar-section">', unsafe_allow_html=True)
-        st.markdown('<h2>📚 RAG 설정</h2>', unsafe_allow_html=True)
-        pdf_file = st.file_uploader("PDF 파일 업로드", type=['pdf'])
-        if pdf_file:
-            with st.spinner("PDF 처리 중..."):
-                status = process_pdf_upload(pdf_file)
-                st.info(status)
         st.markdown('</div>', unsafe_allow_html=True)
 
         # 모델 정보
@@ -715,6 +839,27 @@ def main():
             padding: 20px;
             margin: 20px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }}
+
+        /* 대화 스타터 버튼 스타일 */
+        .conversation-starter-button {{
+            background: {theme_colors['button']};
+            color: {theme_colors['button_text']};
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: calc(50% - 16px);
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }}
+
+        .conversation-starter-button:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
         }}
 
         /* 채팅 메시지 스타일 */
@@ -792,6 +937,21 @@ def main():
                 </div>
             </div>
             """, unsafe_allow_html=True)
+            
+            # 대화 스타터 버튼 표시
+            st.markdown('<div class="conversation-starters">', unsafe_allow_html=True)
+            conversation_starters = get_conversation_starters()
+            
+            # 2열 그리드로 버튼 배치
+            col1, col2 = st.columns(2)
+            for i, (title, response) in enumerate(conversation_starters.items()):
+                if i % 2 == 0:
+                    if col1.button(title, key=f"starter_{i}", use_container_width=True):
+                        handle_conversation_starter(response)
+                else:
+                    if col2.button(title, key=f"starter_{i}", use_container_width=True):
+                        handle_conversation_starter(response)
+            st.markdown('</div>', unsafe_allow_html=True)
         else:
             for message in st.session_state.messages:
                 if message["role"] == "user":
@@ -831,6 +991,7 @@ def main():
     if prompt := st.chat_input("여기에 질문을 입력하세요..."):
         # 사용자 메시지 추가
         st.session_state.messages.append({"role": "user", "content": prompt})
+        st.session_state.conversation_started = True  # 대화 시작 상태로 변경
         
         # 메시지 표시 업데이트
         with messages_container:
@@ -847,11 +1008,7 @@ def main():
         # 챗봇 응답 생성
         with st.spinner("생각 중..."):
             try:
-                response = run_graph(
-                    prompt,
-                    [(m["content"], "") for m in st.session_state.messages if m["role"] == "user"],
-                    image
-                )
+                response = get_ai_response(prompt)
                 # 스트리밍 응답
                 full_response = stream_response(response)
                 st.session_state.messages.append({"role": "assistant", "content": full_response})

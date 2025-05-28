@@ -4,6 +4,11 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from langgraph.graph import StateGraph, END
 import operator
+import logging
+
+# 로깅 설정
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 from .llm_config import AVAILABLE_MODELS, llm_general, llm_coding, llm_reasoning, llm_image
 from .rag_handler import get_relevant_documents, query_pdf_content
@@ -370,3 +375,40 @@ def run_graph(query: str, chat_history: List[Tuple[str, str]], image_pil: Option
     final_state = app_graph.invoke(initial_state)
     
     return final_state.get("output_message", "죄송합니다. 답변을 생성하지 못했습니다.")
+
+def get_specialized_response(prompt: str, context: str) -> str:
+    """특수 목적에 대한 전문적인 응답 생성"""
+    try:
+        # 시스템 프롬프트 생성
+        system_prompt = f"""당신은 {context} 전문가입니다. 
+        사용자의 요청에 대해 전문적이고 상세한 답변을 제공해주세요.
+        필요한 경우 추가 정보를 요청하거나 단계별로 안내해주세요."""
+        
+        # 메시지 구성
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=prompt)
+        ]
+        
+        # LangChain LLM을 사용하여 응답 생성
+        response = llm_reasoning.invoke(messages)
+        
+        return response.content.strip()
+    except Exception as e:
+        error_msg = f"특수 목적 응답 생성 중 오류 발생: {str(e)}"
+        logger.error(error_msg)
+        return "죄송합니다. 응답을 생성하는 중에 오류가 발생했습니다."
+
+def handle_specialized_request(prompt: str, request_type: str) -> str:
+    """특수 목적 요청 처리"""
+    context_map = {
+        "초안 작성": "문서 작성 및 편집",
+        "여행 계획": "여행 계획 및 여행지 추천",
+        "적금 상품": "금융 상품 및 투자",
+        "번역": "다국어 번역",
+        "PDF 분석": "문서 분석 및 요약",
+        "웹 검색": "정보 검색 및 요약"
+    }
+    
+    context = context_map.get(request_type, "일반 상담")
+    return get_specialized_response(prompt, context)

@@ -40,5 +40,26 @@
     "status": "completed",
     "chunks": 2,
     "total_chars": 1229
+  },
+  "1748417801": {
+    "filename": "tmpy04ilj8g.pdf",
+    "upload_time": "2025-05-28T16:36:41.607731",
+    "status": "failed",
+    "file_hash": "0b4350d031fb13c2ab4a077c65705f37",
+    "error": "Cannot open header file"
+  },
+  "1748423814": {
+    "filename": "tmpa61kn691.pdf",
+    "upload_time": "2025-05-28T18:16:54.546300",
+    "status": "failed",
+    "file_hash": "48046627f2143e59d4f4cd763f6a02ac",
+    "error": "Cannot open header file"
+  },
+  "1748424321": {
+    "filename": "tmp6w87i0z5.pdf",
+    "upload_time": "2025-05-28T18:25:21.180987",
+    "status": "failed",
+    "file_hash": "66ca1a8b4fe1873d586dc57d9cce5c70",
+    "error": "Cannot open header file"
   }
 }
